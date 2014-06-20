@@ -1,4 +1,4 @@
-print ( '[[BAREBONES]] start' )
+print ( '[[INVOKERGAME]] start' )
 --[[ This chunk of code forces the reloading of all modules when we reload script.
 if g_reloadState == nil then
 	g_reloadState = {}
@@ -30,3 +30,4 @@ end
 
 loadModule ( 'util' )
 loadModule ( 'invokergame')
+loadModule ( 'invoker_functions')
