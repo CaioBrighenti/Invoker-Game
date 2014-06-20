@@ -1,4 +1,4 @@
-print ('[Invoker Game] invokergame.lua' )
+print ('[InvokerGame] invokergame.lua' )
 
 USE_LOBBY=false
 THINK_TIME = 0.1
@@ -14,23 +14,23 @@ end
 
 GameMode = nil
 
-if BareBonesGameMode == nil then
-  print ( '[BAREBONES] creating barebones game mode' )
-  BareBonesGameMode = {}
-  BareBonesGameMode.szEntityClassName = "barebones"
-  BareBonesGameMode.szNativeClassName = "dota_base_game_mode"
-  BareBonesGameMode.__index = BareBonesGameMode
+if InvokerGameGameMode == nil then
+  print ( '[InvokerGame] creating InvokerGame game mode' )
+  InvokerGameGameMode = {}
+  InvokerGameGameMode.szEntityClassName = "InvokerGame"
+  InvokerGameGameMode.szNativeClassName = "dota_base_game_mode"
+  InvokerGameGameMode.__index = InvokerGameGameMode
 end
 
-function BareBonesGameMode:new( o )
-  print ( '[BAREBONES] BareBonesGameMode:new' )
+function InvokerGameGameMode:new( o )
+  print ( '[InvokerGame] InvokerGameGameMode:new' )
   o = o or {}
-  setmetatable( o, BareBonesGameMode )
+  setmetatable( o, InvokerGameGameMode )
   return o
 end
 
-function BareBonesGameMode:InitGameMode()
-  print('[BAREBONES] Starting to load Barebones gamemode...')
+function InvokerGameGameMode:InitGameMode()
+  print('[InvokerGame] Starting to load InvokerGame gamemode...')
 
   -- Setup rules
   GameRules:SetHeroRespawnEnabled( false )
@@ -42,21 +42,22 @@ function BareBonesGameMode:InitGameMode()
   GameRules:SetTreeRegrowTime( 60.0 )
   GameRules:SetUseCustomHeroXPValues ( true )
   GameRules:SetGoldPerTick(0)
-  print('[BAREBONES] Rules set')
+  print('[InvokerGame] Rules set')
 
-  InitLogFile( "log/barebones.txt","")
+  InitLogFile( "log/InvokerGame.txt","")
 
   -- Hooks
-  ListenToGameEvent('entity_killed', Dynamic_Wrap(BareBonesGameMode, 'OnEntityKilled'), self)
-  ListenToGameEvent('player_connect_full', Dynamic_Wrap(BareBonesGameMode, 'AutoAssignPlayer'), self)
-  ListenToGameEvent('player_disconnect', Dynamic_Wrap(BareBonesGameMode, 'CleanupPlayer'), self)
-  ListenToGameEvent('dota_item_purchased', Dynamic_Wrap(BareBonesGameMode, 'ShopReplacement'), self)
-  ListenToGameEvent('player_say', Dynamic_Wrap(BareBonesGameMode, 'PlayerSay'), self)
-  ListenToGameEvent('player_connect', Dynamic_Wrap(BareBonesGameMode, 'PlayerConnect'), self)
-  --ListenToGameEvent('player_info', Dynamic_Wrap(BareBonesGameMode, 'PlayerInfo'), self)
-  ListenToGameEvent('dota_player_used_ability', Dynamic_Wrap(BareBonesGameMode, 'AbilityUsed'), self)
+  ListenToGameEvent('entity_killed', Dynamic_Wrap(InvokerGameGameMode, 'OnEntityKilled'), self)
+  ListenToGameEvent('player_connect_full', Dynamic_Wrap(InvokerGameGameMode, 'AutoAssignPlayer'), self)
+  ListenToGameEvent('player_disconnect', Dynamic_Wrap(InvokerGameGameMode, 'CleanupPlayer'), self)
+  ListenToGameEvent('dota_item_purchased', Dynamic_Wrap(InvokerGameGameMode, 'ShopReplacement'), self)
+  ListenToGameEvent('player_say', Dynamic_Wrap(InvokerGameGameMode, 'PlayerSay'), self)
+  ListenToGameEvent('player_connect', Dynamic_Wrap(InvokerGameGameMode, 'PlayerConnect'), self)
+  --ListenToGameEvent('player_info', Dynamic_Wrap(InvokerGameGameMode, 'PlayerInfo'), self)
+  ListenToGameEvent('dota_player_used_ability', Dynamic_Wrap(InvokerGameGameMode, 'AbilityUsed'), self)
+  ListenToGameEvent('npc_spawned', Dynamic_Wrap(InvokerGameGameMode, 'NPCSpawned'), self)
 
-  Convars:RegisterCommand( "command_example", Dynamic_Wrap(BareBonesGameMode, 'ExampleConsoleCommand'), "A console command example", 0 )
+  Convars:RegisterCommand( "command_example", Dynamic_Wrap(InvokerGameGameMode, 'ExampleConsoleCommand'), "A console command example", 0 )
   
   -- Fill server with fake clients
   Convars:RegisterCommand('fake', function()
@@ -67,7 +68,7 @@ function BareBonesGameMode:InitGameMode()
         
       self:CreateTimer('assign_fakes', {
         endTime = Time(),
-        callback = function(barebones, args)
+        callback = function(InvokerGame, args)
           for i=0, 9 do
             -- Check if this player is a fake one
             if PlayerResource:IsFakeClient(i) then
@@ -103,23 +104,23 @@ function BareBonesGameMode:InitGameMode()
 
   -- Active Hero Map
   self.vPlayerHeroData = {}
-  print('[BAREBONES] values set')
+  print('[InvokerGame] values set')
 
-  print('[BAREBONES] Precaching stuff...')
+  print('[InvokerGame] Precaching stuff...')
   PrecacheUnitByName('npc_precache_everything')
-  print('[BAREBONES] Done precaching!') 
+  print('[InvokerGame] Done precaching!') 
 
-  print('[BAREBONES] Done loading Barebones gamemode!\n\n')
+  print('[InvokerGame] Done loading InvokerGame gamemode!\n\n')
 end
 
-function BareBonesGameMode:CaptureGameMode()
+function InvokerGameGameMode:CaptureGameMode()
   if GameMode == nil then
     -- Set GameMode parameters
     GameMode = GameRules:GetGameModeEntity()		
     -- Disables recommended items...though I don't think it works
     GameMode:SetRecommendedItemsDisabled( true )
     -- Override the normal camera distance.  Usual is 1134
-    GameMode:SetCameraDistanceOverride( 1504.0 )
+    GameMode:SetCameraDistanceOverride( 1134.0 )
     -- Set Buyback options
     GameMode:SetCustomBuybackCostEnabled( true )
     GameMode:SetCustomBuybackCooldownEnabled( true )
@@ -127,34 +128,44 @@ function BareBonesGameMode:CaptureGameMode()
     -- Override the top bar values to show your own settings instead of total deaths
     GameMode:SetTopBarTeamValuesOverride ( true )
     -- Use custom hero level maximum and your own XP per level
-    GameMode:SetUseCustomHeroLevels ( true )
-    GameMode:SetCustomHeroMaxLevel ( MAX_LEVEL )
-    GameMode:SetCustomXPRequiredToReachNextLevel( XP_PER_LEVEL_TABLE )
+    GameMode:SetUseCustomHeroLevels ( false )
+    --GameMode:SetCustomHeroMaxLevel ( MAX_LEVEL )
+    --GameMode:SetCustomXPRequiredToReachNextLevel( XP_PER_LEVEL_TABLE )
     -- Chage the minimap icon size
     GameRules:SetHeroMinimapIconSize( 300 )
 
-    print( '[BAREBONES] Beginning Think' ) 
-    GameMode:SetContextThink("BarebonesThink", Dynamic_Wrap( BareBonesGameMode, 'Think' ), 0.1 )
+    print( '[InvokerGame] Beginning Think' ) 
+    GameMode:SetContextThink("InvokerGameThink", Dynamic_Wrap( InvokerGameGameMode, 'Think' ), 0.1 )
   end 
 end
 
-function BareBonesGameMode:AbilityUsed(keys)
-  print('[BAREBONES] AbilityUsed')
-  PrintTable(keys)
+function InvokerGameGameMode:NPCSpawned(keys)
+  local spawnedUnit = EntIndexToHScript( keys.entindex )
+  if string.find(spawnedUnit:GetUnitName(), "invoker") then
+    if not InvokerGameGameMode:HasItem(spawnedUnit, "item_ultimate_scepter") then
+      InvokerGameGameMode:GiveItem(spawnedUnit, "item_ultimate_scepter")
+      InvokerGameGameMode:SetLevel(spawnedUnit,17)
+    end
+  end
+end
+
+function InvokerGameGameMode:AbilityUsed(keys)
+  print('[InvokerGame] AbilityUsed')
+  --PrintTable(keys)
 end
 
 -- Cleanup a player when they leave
-function BareBonesGameMode:CleanupPlayer(keys)
-  print('[BAREBONES] Player Disconnected ' .. tostring(keys.userid))
+function InvokerGameGameMode:CleanupPlayer(keys)
+  print('[InvokerGame] Player Disconnected ' .. tostring(keys.userid))
 end
 
-function BareBonesGameMode:CloseServer()
+function InvokerGameGameMode:CloseServer()
   -- Just exit
   SendToServerConsole('exit')
 end
 
-function BareBonesGameMode:PlayerConnect(keys)
-  print('[BAREBONES] PlayerConnect')
+function InvokerGameGameMode:PlayerConnect(keys)
+  print('[InvokerGame] PlayerConnect')
   PrintTable(keys)
   
   -- Fill in the usernames for this userID
@@ -170,8 +181,8 @@ local attach = 0
 local controlPoints = {}
 local particleEffect = ""
 
-function BareBonesGameMode:PlayerSay(keys)
-  print ('[BAREBONES] PlayerSay')
+function InvokerGameGameMode:PlayerSay(keys)
+  print ('[InvokerGame] PlayerSay')
   PrintTable(keys)
   
   -- Get the player entity for the user speaking
@@ -191,17 +202,18 @@ function BareBonesGameMode:PlayerSay(keys)
   local text = keys.text
   
   -- Match the text against something
-  local matchA, matchB = string.match(text, "^-swap%s+(%d)%s+(%d)")
-  if matchA ~= nil and matchB ~= nil then
+  local find = string.find(text, "-restart")
+  if find then
     -- Act on the match
+    InvokerGameGameMode:Restart()
   end
   
 end
 
-function BareBonesGameMode:AutoAssignPlayer(keys)
-  print ('[BAREBONES] AutoAssignPlayer')
+function InvokerGameGameMode:AutoAssignPlayer(keys)
+  print ('[InvokerGame] AutoAssignPlayer')
   PrintTable(keys)
-  BareBonesGameMode:CaptureGameMode()
+  InvokerGameGameMode:CaptureGameMode()
   
   local entIndex = keys.index+1
   -- The Player entity of the joining user
@@ -234,8 +246,8 @@ function BareBonesGameMode:AutoAssignPlayer(keys)
     return
   end
   
-  -- If we're not on D2MODD.in, assign players round robin to teams
-  if not USE_LOBBY and playerID == -1 then
+  -- Always assing Invoker to a connecting player
+  if playerID == -1 then
     if #self.vRadiant > #self.vDire then
       ply:SetTeam(DOTA_TEAM_BADGUYS)
       ply:__KeyValueFromInt('teamnumber', DOTA_TEAM_BADGUYS)
@@ -249,49 +261,9 @@ function BareBonesGameMode:AutoAssignPlayer(keys)
     end
     playerID = ply:GetPlayerID()
   end
-
-  --Autoassign player
-  self:CreateTimer('assign_player_'..entIndex, {
-  endTime = Time(),
-  callback = function(barebones, args)
-    -- Make sure the game has started
-    print ('ASSIGNED')
-    if GameRules:State_Get() >= DOTA_GAMERULES_STATE_PRE_GAME then
-      -- Assign a hero to a fake client
-      local heroEntity = ply:GetAssignedHero()
-      if PlayerResource:IsFakeClient(playerID) then
-        if heroEntity == nil then
-          CreateHeroForPlayer('npc_dota_hero_axe', ply)
-        else
-          PlayerResource:ReplaceHeroWith(playerID, 'npc_dota_hero_axe', 0, 0)
-        end
-      end
-      heroEntity = ply:GetAssignedHero()
-      -- Check if we have a reference for this player's hero
-      if heroEntity ~= nil and IsValidEntity(heroEntity) then
-        -- Set up a heroTable containing the state for each player to be tracked
-        local heroTable = {
-          hero = heroEntity,
-          nTeam = ply:GetTeam(),
-          bRoundInit = false,
-          name = self.vUserNames[keys.userid],
-        }
-        self.vPlayers[playerID] = heroTable
-
-        if GameRules:State_Get() > DOTA_GAMERULES_STATE_PRE_GAME then
-            -- This section runs if the player picks a hero after the round starts
-        end
-
-        return
-      end
-    end
-
-    return Time() + 1.0
-  end
-})
 end
 
-function BareBonesGameMode:LoopOverPlayers(callback)
+function InvokerGameGameMode:LoopOverPlayers(callback)
   for k, v in pairs(self.vPlayers) do
     -- Validate the player
     if IsValidEntity(v.hero) then
@@ -303,8 +275,8 @@ function BareBonesGameMode:LoopOverPlayers(callback)
   end
 end
 
-function BareBonesGameMode:ShopReplacement( keys )
-  print ( '[BAREBONES] ShopReplacement' )
+function InvokerGameGameMode:ShopReplacement( keys )
+  print ( '[InvokerGame] ShopReplacement' )
   PrintTable(keys)
 
   -- The playerID of the hero who is buying something
@@ -319,7 +291,7 @@ function BareBonesGameMode:ShopReplacement( keys )
   
 end
 
-function BareBonesGameMode:getItemByName( hero, name )
+function InvokerGameGameMode:getItemByName( hero, name )
   -- Find item by slot
   for i=0,11 do
     local item = hero:GetItemInSlot( i )
@@ -334,7 +306,7 @@ function BareBonesGameMode:getItemByName( hero, name )
   return nil
 end
 
-function BareBonesGameMode:Think()
+function InvokerGameGameMode:Think()
   -- If the game's over, it's over.
   if GameRules:State_Get() >= DOTA_GAMERULES_STATE_POST_GAME then
     return
@@ -343,16 +315,16 @@ function BareBonesGameMode:Think()
   -- Track game time, since the dt passed in to think is actually wall-clock time not simulation time.
   local now = GameRules:GetGameTime()
   --print("now: " .. now)
-  if BareBonesGameMode.t0 == nil then
-    BareBonesGameMode.t0 = now
+  if InvokerGameGameMode.t0 == nil then
+    InvokerGameGameMode.t0 = now
   end
-  local dt = now - BareBonesGameMode.t0
-  BareBonesGameMode.t0 = now
+  local dt = now - InvokerGameGameMode.t0
+  InvokerGameGameMode.t0 = now
 
-  --BareBonesGameMode:thinkState( dt )
+  --InvokerGameGameMode:thinkState( dt )
 
   -- Process timers
-  for k,v in pairs(BareBonesGameMode.timers) do
+  for k,v in pairs(InvokerGameGameMode.timers) do
     local bUseGameTime = false
     if v.useGameTime and v.useGameTime == true then
       bUseGameTime = true;
@@ -360,10 +332,10 @@ function BareBonesGameMode:Think()
     -- Check if the timer has finished
     if (bUseGameTime and GameRules:GetGameTime() > v.endTime) or (not bUseGameTime and Time() > v.endTime) then
       -- Remove from timers list
-      BareBonesGameMode.timers[k] = nil
+      InvokerGameGameMode.timers[k] = nil
 
       -- Run the callback
-      local status, nextCall = pcall(v.callback, BareBonesGameMode, v)
+      local status, nextCall = pcall(v.callback, InvokerGameGameMode, v)
 
       -- Make sure it worked
       if status then
@@ -371,12 +343,12 @@ function BareBonesGameMode:Think()
         if nextCall then
           -- Change it's end time
           v.endTime = nextCall
-          BareBonesGameMode.timers[k] = v
+          InvokerGameGameMode.timers[k] = v
         end
 
       else
         -- Nope, handle the error
-        BareBonesGameMode:HandleEventError('Timer', k, nextCall)
+        InvokerGameGameMode:HandleEventError('Timer', k, nextCall)
       end
     end
   end
@@ -384,7 +356,7 @@ function BareBonesGameMode:Think()
   return THINK_TIME
 end
 
-function BareBonesGameMode:HandleEventError(name, event, err)
+function InvokerGameGameMode:HandleEventError(name, event, err)
   -- This gets fired when an event throws an error
 
   -- Log to console
@@ -406,7 +378,7 @@ function BareBonesGameMode:HandleEventError(name, event, err)
   end
 end
 
-function BareBonesGameMode:CreateTimer(name, args)
+function InvokerGameGameMode:CreateTimer(name, args)
   --[[
   args: {
   endTime = Time you want this timer to end: Time() + 30 (for 30 seconds from now),
@@ -433,12 +405,12 @@ function BareBonesGameMode:CreateTimer(name, args)
   self.timers[name] = args
 end
 
-function BareBonesGameMode:RemoveTimer(name)
+function InvokerGameGameMode:RemoveTimer(name)
   -- Remove this timer
   self.timers[name] = nil
 end
 
-function BareBonesGameMode:RemoveTimers(killAll)
+function InvokerGameGameMode:RemoveTimers(killAll)
   local timers = {}
 
   -- If we shouldn't kill all timers
@@ -457,7 +429,7 @@ function BareBonesGameMode:RemoveTimers(killAll)
   self.timers = timers
 end
 
-function BareBonesGameMode:ExampleConsoleCommand()
+function InvokerGameGameMode:ExampleConsoleCommand()
   print( '******* Example Console Command ***************' )
   local cmdPlayer = Convars:GetCommandClient()
   if cmdPlayer then
@@ -470,8 +442,8 @@ function BareBonesGameMode:ExampleConsoleCommand()
   print( '*********************************************' )
 end
 
-function BareBonesGameMode:OnEntityKilled( keys )
-  print( '[BAREBONES] OnEntityKilled Called' )
+function InvokerGameGameMode:OnEntityKilled( keys )
+  print( '[InvokerGame] OnEntityKilled Called' )
   PrintTable( keys )
   
   -- The Unit that was Killed
@@ -524,13 +496,13 @@ function dealDamage(source, target, damage)
   unit:SetForwardVector(diff:Normalized())
   unit:CastAbilityOnTarget(target, ability, 0 )
   
-  BareBonesGameMode:CreateTimer(DoUniqueString("damage"), {
+  InvokerGameGameMode:CreateTimer(DoUniqueString("damage"), {
     endTime = GameRules:GetGameTime() + 0.3,
     useGameTime = true,
-    callback = function(barebones, args)
+    callback = function(InvokerGame, args)
       unit:Destroy()
       if target:GetHealth() == hp and hp ~= 0 and damage ~= 0 then
-        print ("[BAREBONES] WARNING: dealDamage did no damage: " .. hp)
+        print ("[InvokerGame] WARNING: dealDamage did no damage: " .. hp)
         dealDamage(source, target, damage)
       end
     end
